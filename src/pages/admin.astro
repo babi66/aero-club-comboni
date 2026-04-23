@@ -6,13 +6,23 @@ import '../styles/global.css';
 <Layout title="Admin | Comboni Aero Club">
   <main class="p-8 bg-slate-950 min-h-screen text-white">
     <div class="max-w-6xl mx-auto">
+      
+      <div class="mb-10 p-8 rounded-3xl bg-gradient-to-r from-blue-600/20 to-transparent border border-blue-500/20">
+        <h2 class="text-blue-400 font-bold uppercase tracking-widest text-sm mb-2">Systems Online</h2>
+        <h1 class="text-4xl md:text-5xl font-black">Welcome, Mr. Behailu</h1>
+        <p class="text-slate-400 mt-2">The Aero Club flight deck is under your command.</p>
+      </div>
+
       <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
-          <h1 class="text-3xl font-black">Admin Dashboard</h1>
-          <p class="text-slate-400">Comboni High School Aero Club Registrations</p>
+          <h1 class="text-2xl font-bold">Registration Records</h1>
+          <p class="text-slate-500 text-sm">Monitoring student applications in real-time.</p>
         </div>
         <div class="flex gap-4">
-          <button id="exportBtn" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold transition-all">
+          <button id="exportBtn" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold transition-all flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
             Export Excel
           </button>
           <button id="logoutBtn" class="bg-slate-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all">
@@ -21,10 +31,10 @@ import '../styles/global.css';
         </div>
       </div>
 
-      <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+      <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-800 text-slate-300 uppercase text-xs font-bold tracking-widest">
+            <tr class="bg-slate-800/50 text-slate-300 uppercase text-xs font-bold tracking-widest">
               <th class="p-4">#</th>
               <th class="p-4">Name</th>
               <th class="p-4">Grade/Section</th>
@@ -45,7 +55,7 @@ import '../styles/global.css';
   import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
   import * as XLSX from 'xlsx';
 
-  // 🔒 1. SECURITY CHECK: RUNS IMMEDIATELY
+  // 🔒 SECURITY CHECK
   if (sessionStorage.getItem('isAeroAdmin') !== 'true') {
     window.location.href = "/login";
   }
@@ -55,13 +65,13 @@ import '../styles/global.css';
   const logoutBtn = document.getElementById('logoutBtn');
   let allStudents = [];
 
-  // 🔓 2. LOGOUT LOGIC
+  // 🔓 LOGOUT
   logoutBtn.addEventListener('click', () => {
     sessionStorage.removeItem('isAeroAdmin');
     window.location.href = "/login";
   });
 
-  // 📡 3. REAL-TIME FETCH
+  // 📡 DATA FETCHING
   const q = query(collection(db, "registrations"), orderBy("timestamp", "asc"));
   
   onSnapshot(q, (snapshot) => {
@@ -81,14 +91,14 @@ import '../styles/global.css';
       const isPriority = index < 30;
 
       tableBody.innerHTML += `
-        <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
+        <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
           <td class="p-4 text-slate-500">${index + 1}</td>
-          <td class="p-4 font-semibold">${data.name}</td>
-          <td class="p-4">${data.grade} - ${data.section}</td>
-          <td class="p-4">${data.interest}</td>
+          <td class="p-4 font-semibold text-blue-100">${data.name}</td>
+          <td class="p-4 text-slate-300">${data.grade} - ${data.section}</td>
+          <td class="p-4 text-slate-300">${data.interest}</td>
           <td class="p-4">
-            <span class="px-3 py-1 rounded-full text-xs font-bold ${isPriority ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-slate-700 text-slate-400'}">
-              ${isPriority ? 'PRIORITY 30' : 'WAITLIST'}
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${isPriority ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-slate-700 text-slate-400'}">
+              ${isPriority ? 'Priority 30' : 'Waitlist'}
             </span>
           </td>
         </tr>
@@ -96,10 +106,9 @@ import '../styles/global.css';
     });
   });
 
-  // 📊 4. EXPORT LOGIC
+  // 📊 EXCEL EXPORT
   exportBtn.addEventListener('click', () => {
     if (allStudents.length === 0) return alert("No students to export!");
-    
     const worksheet = XLSX.utils.json_to_sheet(allStudents);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Aero Club Members");
