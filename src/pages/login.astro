@@ -1,0 +1,83 @@
+---
+import '../styles/global.css';
+---
+
+<html lang="en">
+<head>
+    <title>Admin Login | Aero Club</title>
+</head>
+<body class="bg-slate-950 text-white flex items-center justify-center min-h-screen font-sans">
+    <div class="max-w-md w-full p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl">
+        <div class="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        </div>
+        <h1 class="text-2xl font-black mb-2 text-center">Flight Deck Access</h1>
+        <p class="text-slate-500 text-center mb-8 text-sm">Enter credentials to view club records.</p>
+        
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-300">Email Address</label>
+                <input type="email" id="email" required class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="admin@comboni.edu">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-slate-300">Password</label>
+                <input type="password" id="password" required class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all" placeholder="********">
+            </div>
+            <button type="submit" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20">
+                Log In
+            </button>
+        </form>
+        
+        <div class="mt-8 text-center">
+            <a href="/" class="text-slate-500 hover:text-slate-300 text-xs transition-colors">Back to Registration</a>
+        </div>
+    </div>
+
+    <script>
+        import { initializeApp } from "firebase/app";
+        import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCijC8byj6KHggN22cs3XkgenO8IwE9jko",
+            authDomain: "comboni-aero-club.firebaseapp.com",
+            projectId: "comboni-aero-club",
+            storageBucket: "comboni-aero-club.firebasestorage.app",
+            messagingSenderId: "285362456238",
+            appId: "1:285362456238:web:1bc9850c5a75444d940f3f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const form = document.getElementById('loginForm');
+        const btn = document.getElementById('loginBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI Feedback
+            btn.innerText = "Authenticating...";
+            btn.disabled = true;
+
+            const email = (document.getElementById('email') as HTMLInputElement).value;
+            const password = (document.getElementById('password') as HTMLInputElement).value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // ✅ This key must match the check in admin.astro
+                sessionStorage.setItem('isAeroAdmin', 'true');
+                
+                window.location.href = "/admin";
+            } catch (error) {
+                alert("Invalid Credentials. Access Denied.");
+                btn.innerText = "Log In";
+                btn.disabled = false;
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+---
+import Layout from '../layouts/Layout.astro';
+import '../styles/global.css';
+---
+
+<Layout title="Admin | Comboni Aero Club">
+  <main class="p-8 bg-slate-950 min-h-screen text-white">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+          <h1 class="text-3xl font-black">Admin Dashboard</h1>
+          <p class="text-slate-400">Comboni High School Aero Club Registrations</p>
+        </div>
+        <div class="flex gap-4">
+          <button id="exportBtn" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold transition-all">
+            Export Excel
+          </button>
+          <button id="logoutBtn" class="bg-slate-800 hover:bg-red-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all">
+            Log Out
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-800 text-slate-300 uppercase text-xs font-bold tracking-widest">
+              <th class="p-4">#</th>
+              <th class="p-4">Name</th>
+              <th class="p-4">Grade/Section</th>
+              <th class="p-4">Interest</th>
+              <th class="p-4">Status</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody">
+            </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { db } from '../firebase.js';
+  import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+  import * as XLSX from 'xlsx';
+
+  // 🔒 1. SECURITY CHECK: RUNS IMMEDIATELY
+  if (sessionStorage.getItem('isAeroAdmin') !== 'true') {
+    window.location.href = "/login";
+  }
+
+  const tableBody = document.getElementById('studentTableBody');
+  const exportBtn = document.getElementById('exportBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  let allStudents = [];
+
+  // 🔓 2. LOGOUT LOGIC
+  logoutBtn.addEventListener('click', () => {
+    sessionStorage.removeItem('isAeroAdmin');
+    window.location.href = "/login";
+  });
+
+  // 📡 3. REAL-TIME FETCH
+  const q = query(collection(db, "registrations"), orderBy("timestamp", "asc"));
+  
+  onSnapshot(q, (snapshot) => {
+    tableBody.innerHTML = "";
+    allStudents = [];
+    
+    snapshot.docs.forEach((doc, index) => {
+      const data = doc.data();
+      allStudents.push({ 
+        No: index + 1, 
+        Name: data.name, 
+        Grade: data.grade, 
+        Section: data.section, 
+        Interest: data.interest 
+      });
+
+      const isPriority = index < 30;
+
+      tableBody.innerHTML += `
+        <tr class="border-b border-slate-800 hover:bg-slate-800/50 transition-colors">
+          <td class="p-4 text-slate-500">${index + 1}</td>
+          <td class="p-4 font-semibold">${data.name}</td>
+          <td class="p-4">${data.grade} - ${data.section}</td>
+          <td class="p-4">${data.interest}</td>
+          <td class="p-4">
+            <span class="px-3 py-1 rounded-full text-xs font-bold ${isPriority ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'bg-slate-700 text-slate-400'}">
+              ${isPriority ? 'PRIORITY 30' : 'WAITLIST'}
+            </span>
+          </td>
+        </tr>
+      `;
+    });
+  });
+
+  // 📊 4. EXPORT LOGIC
+  exportBtn.addEventListener('click', () => {
+    if (allStudents.length === 0) return alert("No students to export!");
+    
+    const worksheet = XLSX.utils.json_to_sheet(allStudents);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Aero Club Members");
+    XLSX.writeFile(workbook, "Comboni_Aero_Club_Students.xlsx");
+  });
+</script>

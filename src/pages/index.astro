@@ -1,0 +1,127 @@
+---
+// src/pages/index.astro
+import '../styles/global.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Comboni High School | Aero Club</title>
+	</head>
+	<body class="bg-slate-950 text-white font-sans">
+		
+		<section class="relative h-screen flex items-center justify-center overflow-hidden">
+			<img 
+				src="/image/hero-banner.jpg" 
+				alt="Aero Club Banner" 
+				class="absolute inset-0 w-full h-full object-cover z-0 opacity-40"
+			/>
+			<div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950 z-0"></div>
+			
+			<div class="relative z-10 text-center px-6">
+				<div class="inline-block px-4 py-1 mb-4 border border-blue-500 rounded-full text-blue-400 text-sm font-bold tracking-widest uppercase bg-blue-500/10">
+					Comboni High School
+				</div>
+				<h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tighter">
+					AERO <span class="text-blue-500">CLUB</span>
+				</h1>
+				<p class="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+					Engineering the future. Fly with us as we explore drone technology and aerospace design.
+				</p>
+				<a href="#register" class="bg-blue-600 hover:bg-blue-500 text-white px-10 py-4 rounded-lg font-bold text-lg transition-all hover:scale-105 inline-block shadow-lg shadow-blue-500/20">
+					Join the Flight Crew
+				</a>
+			</div>
+		</section>
+
+		<section id="register" class="py-24 bg-slate-950">
+			<div class="max-w-xl mx-auto px-6">
+				<div class="bg-slate-900 p-8 rounded-3xl border border-slate-800 shadow-2xl">
+					<h2 class="text-3xl font-bold mb-2 text-center">Register Now</h2>
+					<p class="text-slate-500 text-center mb-8 text-sm">Join the first 30 students for priority access.</p>
+					
+					<form id="regForm" class="space-y-5">
+						<div>
+							<label class="block text-sm font-semibold mb-2 text-slate-300">Full Name</label>
+							<input type="text" id="name" required class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Enter your full name">
+						</div>
+
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label class="block text-sm font-semibold mb-2 text-slate-300">Grade</label>
+								<select id="grade" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none">
+									<option>Grade 9</option>
+									<option>Grade 10</option>
+									<option>Grade 11</option>
+									<option>Grade 12</option>
+								</select>
+							</div>
+							<div>
+								<label class="block text-sm font-semibold mb-2 text-slate-300">Section</label>
+								<input type="text" id="section" required class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none" placeholder="e.g. A">
+							</div>
+						</div>
+
+						<div>
+							<label class="block text-sm font-semibold mb-2 text-slate-300">Interest</label>
+							<select id="interest" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-xl outline-none">
+								<option>Drone Tech</option>
+								<option>Aircraft Design</option>
+								<option>Programming</option>
+							</select>
+						</div>
+
+						<button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20">
+							Submit Application
+						</button>
+					</form>
+				</div>
+			</div>
+		</section>
+
+		<footer class="py-10 bg-slate-950 border-t border-slate-900">
+			<div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+				<p class="text-slate-500 text-sm">
+					© 2026 Comboni High School Aero Club. All rights reserved.
+				</p>
+				<a href="/login" class="text-slate-600 hover:text-blue-500 text-xs font-medium transition-colors uppercase tracking-widest">
+					Admin Dashboard →
+				</a>
+			</div>
+		</footer>
+
+		<script>
+			import { db } from '../firebase.js';
+			import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
+			const form = document.getElementById('regForm');
+
+			form.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const btn = (e.target as HTMLFormElement).querySelector('button');
+				
+				btn.innerText = "Connecting to Satellite...";
+				btn.disabled = true;
+
+				const studentData = {
+					name: (document.getElementById('name') as HTMLInputElement).value,
+					grade: (document.getElementById('grade') as HTMLSelectElement).value,
+					section: (document.getElementById('section') as HTMLInputElement).value,
+					interest: (document.getElementById('interest') as HTMLSelectElement).value,
+					timestamp: serverTimestamp()
+				};
+
+				try {
+					await addDoc(collection(db, "registrations"), studentData);
+					window.location.href = "/success";
+				} catch (error) {
+					console.error("Critical Error:", error);
+					alert("Registration Error: " + error.message);
+					btn.innerText = "Submit Application";
+					btn.disabled = false;
+				}
+			});
+		</script>
+	</body>
+</html>
